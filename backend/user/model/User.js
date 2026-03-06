@@ -11,10 +11,6 @@ const userschema = new Schema(
       required: true,
       unique: true,
     },
-    phone: {
-      type: Number,
-      default:'00000000'
-    },
   },
   {
     timestamps: true,

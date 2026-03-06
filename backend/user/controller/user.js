@@ -27,7 +27,7 @@ export const login = tryCatch(async (req, res) => {
     subject: "your OTP code",
     body: `your OTP is ${otp}.it is valid for 5 minutes`,
   };
-
+  console.log(otp);
   await publishToQueue("send-otp", massege);
   res.status(200).json({
     success: true,
@@ -51,6 +51,7 @@ export const verifyemail = tryCatch(async (req, res) => {
       message: "invelid otp",
     });
   }
+
   let user = await User.findOne({ email });
   if (!user) {
     const name = email.slice(0, 8);
@@ -70,22 +71,33 @@ export const getProfile = tryCatch(async (req, res) => {
   return res.json(user);
 });
 
-export const updateprofile = tryCatch(async (req,res) => {
-  const { updatedname, updatedphone } = req.body;
+export const getAllprofile = tryCatch(async(req,res)=>{
+  const allUser = User.find({})
+  res.status(200).json({
+    message:'All user info',
+    user:allUser
+  })
+})
+
+export const updateprofile = tryCatch(async (req, res) => {
+  const { updatedname } = req.body;
   const userId = req.user._id;
-  const user = await User.findByIdAndUpdate(userId, {
-    name: updatedname,
-    phone: updatedphone,
-  },{
-    new:true
-  });
-   if (!user) {
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      name: updatedname,
+    },
+    {
+      new: true,
+    },
+  );
+  if (!user) {
     return res.status(404).json({
       success: false,
       message: "User not found",
     });
   }
-    res.status(200).json({
+  res.status(200).json({
     success: true,
     message: "Profile updated successfully",
     user,

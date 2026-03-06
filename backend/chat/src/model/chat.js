@@ -1,10 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 
 const chatSchema = new Schema({
-    users:{
+    users:[{
         type:String,
-        require:true
-    },
+        required:true
+    }],
     latestMessage:{
         text:String,
         sender:String
@@ -13,4 +13,4 @@ const chatSchema = new Schema({
 },{
     timestamps:true
 })
-module.exports = mongoose.model('chats',chatSchema)
+export const Chat = mongoose.model('chats',chatSchema)
