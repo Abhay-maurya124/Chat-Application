@@ -1,15 +1,27 @@
 import { configDotenv } from "dotenv";
 import express from "express";
-import { Chat } from "./src/model/chat.js";
-import  router  from "./src/routes/chat.js";
-const app = express();
+import mongoose from "mongoose"; 
+import router from "./src/routes/chat.js";
+
 configDotenv();
+const app = express();
 app.use(express.json());
-Chat();
-console.log("connected to database");
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URL);
+    console.log("✅ Real connection to MongoDB established");
+  } catch (err) {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1); 
+  }
+};
+
+connectDB(); 
 
 app.use("/v2", router);
-const PORT = process.env.PORT;
+
+const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
-  console.log("Connected to chat at:", PORT);
+  console.log("🚀 Chat service running at:", PORT);
 });

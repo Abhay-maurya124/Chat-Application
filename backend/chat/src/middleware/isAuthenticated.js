@@ -17,7 +17,6 @@ const authheader = req.headers.authorization;
         success: false,
         message: "Token is incorrect or invelid",
       });
-      return;
     }
     req.user = decodedValue.user;
     next();
