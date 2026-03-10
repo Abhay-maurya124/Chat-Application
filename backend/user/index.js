@@ -3,15 +3,21 @@ import express from "express";
 import connectDB from "./config/db.js";
 import { createClient } from "redis";
 import router from "./routes/user.js";
-import { connectRabbitmq } from "./config/rabbitmq.js"; 
+import cors from "cors";
+import { connectRabbitmq } from "./config/rabbitmq.js";
 configDotenv();
-
 const app = express();
 const PORT = process.env.PORT;
+app.use(
+  cors({
+    origin: "http://localhost:5173" || "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 export const redisClient = createClient({
   url: process.env.REDIS_URL,
 });
-
 const startServer = async () => {
   try {
     await connectDB();
@@ -20,7 +26,7 @@ const startServer = async () => {
     await redisClient.connect();
     console.log("Redis is connected");
 
-    await connectRabbitmq(); 
+    await connectRabbitmq();
 
     app.use(express.json());
     app.use("/v1/user", router);
@@ -28,10 +34,9 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`Server is running at port: ${PORT}`);
     });
-
   } catch (error) {
     console.error("Failed to start server:", error);
-    process.exit(1); 
+    process.exit(1);
   }
 };
 
