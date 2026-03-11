@@ -72,10 +72,10 @@ export const getProfile = tryCatch(async (req, res) => {
 });
 
 export const getAllprofile = tryCatch(async(req,res)=>{
-  const allUser = User.find({})
+const allUsers = await User.find({}).lean();
   res.status(200).json({
     message:'All user info',
-    user:allUser
+    user:allUsers
   })
 })
 

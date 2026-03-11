@@ -40,6 +40,7 @@ export const getAllChats = tryCatch(async (req, res) => {
       message: "User not found",
     });
   }
+
   const chats = await Chat.find({ users: userId }).sort({ updatedAt: -1 });
   const chatWithUserData = await Promise.all(
     chats.map(async (chat) => {
@@ -52,7 +53,7 @@ export const getAllChats = tryCatch(async (req, res) => {
 
       try {
         const { data } = await axios.get(
-          `${process.env.USER_SERVICE}/api/v1/user/${otherUserId}`,
+          `${process.env.USER_SERVICE}/v1/user/alluser/${otherUserId}`,
         );
         return {
           user: data,

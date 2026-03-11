@@ -1,13 +1,20 @@
-import express from 'express'
-import { getAllprofile, getProfile, login, updateprofile, verifyemail } from '../controller/user.js'
-import { isAuth } from '../middleware/isAuthenticated.js'
- 
-const router = express.Router()
+import express from "express";
+import {
+  getAllprofile,
+  getProfile,
+  login,
+  updateprofile,
+  verifyemail,
+} from "../controller/user.js";
+import { isAuth } from "../middleware/isAuthenticated.js";
 
-router.post('/login',login)
-router.post('/verify',verifyemail)
-router.post('/alluser',getAllprofile)
-router.get('/profile',isAuth,getProfile)
-router.post('/update',isAuth,updateprofile)
+const router = express.Router();
 
-export default router
+router.post("/login", login);
+router.post("/verify", verifyemail);
+router.get("/alluser/:chatid", getAllprofile); // for chat
+router.get("/alluser", getAllprofile); // only for user data
+router.get("/profile", isAuth, getProfile);
+router.post("/update", isAuth, updateprofile);
+
+export default router;
