@@ -2,11 +2,18 @@ import { configDotenv } from "dotenv";
 import express from "express";
 import mongoose from "mongoose"; 
 import router from "./src/routes/chat.js";
+import cors from "cors";
 
 configDotenv();
 const app = express();
 app.use(express.json());
-
+app.use(
+  cors({
+    origin: "http://localhost:5173" || "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URL);

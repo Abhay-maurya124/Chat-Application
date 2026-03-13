@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useChatState } from '../Context/NewContext';
 import axios from "axios"
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
+import { useFetchData } from '../Context/FetchContext';
 
 const Login = () => {
     const { loading, setloading } = useChatState()
     const [email, setemail] = useState("")
-    console.log(email)
     const navigate = useNavigate()
     const handleSubmit = async (e) => {
         setloading(true)
@@ -28,6 +28,7 @@ const Login = () => {
         }
 
     };
+  
     return (
         <div className="min-h-screen w-full flex absolute overflow-y-hidden items-center justify-center bg-linear-to-br from-indigo-900 via-slate-900 to-black px-4 flex-col">
             <ToastContainer theme='dark' />

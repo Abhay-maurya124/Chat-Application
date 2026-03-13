@@ -4,7 +4,7 @@ export const isAuth = (req, res, next) => {
   try {
 const authheader = req.headers.authorization;
     if (!authheader || !authheader.startsWith("Bearer")) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         message: "Token is invelid or expired",
       });
@@ -17,7 +17,6 @@ const authheader = req.headers.authorization;
         success: false,
         message: "Token is incorrect or invelid",
       });
-      return;
     }
     req.user = decodedValue.user;
     next();
