@@ -1,10 +1,16 @@
 import React, { useEffect } from 'react'
 import Chatwindow from '../component/Chatwindow'
 import Sidebar from '../component/Sidebar'
+import { useFetchData } from '../Context/FetchContext'
 const Chat = () => {
+    const { AllChat, getAlluser, createChat, profiledata, getUserChats } = useFetchData()
+    useEffect(() => {
+        getUserChats
+    }, [])
     return (
+
         <div className='flex w-full h-screen overflow-hidden'>
-            <Sidebar />
+            <Sidebar {...{ AllChat, getAlluser, createChat, profiledata, getUserChats }} />
             <Chatwindow />
         </div>
     )
