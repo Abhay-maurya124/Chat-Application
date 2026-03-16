@@ -3,9 +3,9 @@ import express from "express";
 import mongoose from "mongoose"; 
 import router from "./src/routes/chat.js";
 import cors from "cors";
+import { app,server } from "./src/config/Socket.js";
 
 configDotenv();
-const app = express();
 app.use(express.json());
 app.use(
   cors({
@@ -17,7 +17,7 @@ app.use(
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URL);
-    console.log("✅ Real connection to MongoDB established");
+    console.log("✅ Chat Connected to Database");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
     process.exit(1); 
@@ -29,6 +29,6 @@ connectDB();
 app.use("/v2", router);
 
 const PORT = process.env.PORT || 5002;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("🚀 Chat service running at:", PORT);
 });

@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useChatState } from '../Context/NewContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
+import { useFetchData } from '../Context/FetchContext';
 
 const Verifyemail = () => {
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -10,7 +11,7 @@ const Verifyemail = () => {
     const [loading, setloading] = useState();
     const location = useLocation();
     const navigate = useNavigate();
-
+    const { fetchProfile } = useFetchData()
     const queryParams = new URLSearchParams(location.search);
     const email = queryParams.get("email");
 
@@ -47,8 +48,9 @@ const Verifyemail = () => {
                 otp: otpCode
             });
             toast.success("Email verified successfully!");
-            localStorage.setItem("token",res.data.Token)
+            localStorage.setItem("token", res.data.Token)
             if (res.status === 200) {
+                await fetchProfile();
                 setTimeout(() => {
                     navigate("/chat");
                 }, 3000);

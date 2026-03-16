@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import { LuMessageCircleHeart, LuSearch, LuX } from "react-icons/lu"
 import { IoPersonCircle } from "react-icons/io5"
 import ProfileBottom from './ProfileBottom.jsx'
+import { useSocket } from '../Context/Socket.jsx'
 
 const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
     const [ToggleSidebar, setToggleSidebar] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
+    const { onlineUsers } = useSocket()
+    
     const usersArray = Array.isArray(getAlluser) ? getAlluser : (getAlluser?.users || getAlluser?.allUsers || []);
-
     const filteredGlobalUsers = usersArray.filter(user =>
         user.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -52,10 +54,14 @@ const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
                     <div className='flex flex-col'>
                         {AllChat?.chats?.map((item) => {
                             const person = item.user;
+                            const isOnline = onlineUsers.includes(person?._id);
                             if (!person?.name) return null;
                             return (
                                 <div key={item.chat?._id} onClick={() => getUserChats(item.chat?._id)} className='flex items-center gap-4 px-4 py-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800/40 transition-all'>
-                                    <div className='text-gray-500'><IoPersonCircle size={55} /></div>
+                                    <div className='relative text-gray-500'>
+                                        <IoPersonCircle size={55} />
+                                        {isOnline && <span className='absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#111b21]'></span>}
+                                    </div>
                                     <div className='flex-1 min-w-0'>
                                         <div className='flex justify-between items-center'>
                                             <h2 className='text-white font-semibold truncate'>{person.name}</h2>
@@ -79,15 +85,21 @@ const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
                 ) : (
                     <div className='flex flex-col'>
                         <p className='px-4 py-2 text-xs font-bold text-blue-500 uppercase tracking-widest'>All Users</p>
-                        {filteredGlobalUsers?.map((user) => (
-                            <div key={user._id} onClick={() => { createChat(user._id); setToggleSidebar(true); }} className='flex items-center gap-4 px-4 py-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800/40 transition-all'>
-                                <div className='text-blue-500'><IoPersonCircle size={50} /></div>
-                                <div className='flex-1'>
-                                    <h2 className='text-white font-medium'>{user.name}</h2>
-                                    <p className='text-xs text-gray-500'>{user.email}</p>
+                        {filteredGlobalUsers?.map((user) => {
+                            const isOnline = onlineUsers.includes(user?._id);
+                            return (
+                                <div key={user._id} onClick={() => { createChat(user._id); setToggleSidebar(true); }} className='flex items-center gap-4 px-4 py-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800/40 transition-all'>
+                                    <div className='relative text-blue-500'>
+                                        <IoPersonCircle size={50} />
+                                        {isOnline && <span className='absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#111b21]'></span>}
+                                    </div>
+                                    <div className='flex-1'>
+                                        <h2 className='text-white font-medium'>{user.name}</h2>
+                                        <p className='text-xs text-gray-500'>{user.email}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 )}
             </div>
