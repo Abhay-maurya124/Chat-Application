@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useState, useEffect, useContext } from 'react';
 import { io } from 'socket.io-client';
 import { useFetchData } from './FetchContext';
@@ -12,7 +10,14 @@ export const SocketProvider = ({ children }) => {
     const [onlineUsers, setOnlineUsers] = useState([]);
 
     useEffect(() => {
-        if (!profiledata?._id) return;
+        // ✅ FIX: Disconnect old socket before creating new one (handles re-login)
+        if (!profiledata?._id) {
+            if (socket) {
+                socket.disconnect();
+                setSocket(null);
+            }
+            return;
+        }
 
         const newSocket = io("http://localhost:5002", {
             query: { userId: profiledata._id }
@@ -28,13 +33,13 @@ export const SocketProvider = ({ children }) => {
             newSocket.off("getOnlineUser");
             newSocket.disconnect();
         };
-    }, [profiledata?._id]);
+    }, [profiledata?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <SocketContext.Provider value={{ socket, onlineUsers }}>
             {children}
         </SocketContext.Provider>
     );
-}
+};
 
 export const useSocket = () => useContext(SocketContext);

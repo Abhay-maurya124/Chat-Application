@@ -11,7 +11,6 @@ const ProfileBottom = () => {
     const [isEditing, setIsEditing] = useState(false)
     const [newName, setNewName] = useState('')
 
-    // Keep state in sync with context data
     useEffect(() => {
         if (profiledata?.name) {
             setNewName(profiledata.name)

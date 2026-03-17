@@ -1,18 +1,47 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { LuMessageCircleHeart, LuSearch, LuX } from "react-icons/lu"
 import { IoPersonCircle } from "react-icons/io5"
 import ProfileBottom from './ProfileBottom.jsx'
 import { useSocket } from '../Context/Socket.jsx'
+import { useFetchData } from '../Context/FetchContext'
 
-const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
+const Sidebar = ({ AllChat, allUsers, createChat, getUserChats }) => {
     const [ToggleSidebar, setToggleSidebar] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const { onlineUsers } = useSocket()
-    
-    const usersArray = Array.isArray(getAlluser) ? getAlluser : (getAlluser?.users || getAlluser?.allUsers || []);
+    const { onlineUsers, socket } = useSocket()
+    // ✅ FIX: setAllChat was never exposed from FetchContext before — now it is
+    const { profiledata, setAllChat } = useFetchData()
+
+    const usersArray = Array.isArray(allUsers)
+        ? allUsers
+        : (allUsers?.user || allUsers?.users || allUsers?.allUsers || []);
+
     const filteredGlobalUsers = usersArray.filter(user =>
         user.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    useEffect(() => {
+        if (!socket) return;
+
+        // ✅ FIX: This handler now actually works because setAllChat is properly exposed
+        const handleUpdateSeen = ({ chatId, userId }) => {
+            if (userId === profiledata?._id) {
+                setAllChat(prev => {
+                    if (!prev?.chats) return prev;
+                    const updatedChats = prev.chats.map(item => {
+                        if (item.chat._id === chatId) {
+                            return { ...item, chat: { ...item.chat, unSeencount: 0 } };
+                        }
+                        return item;
+                    });
+                    return { ...prev, chats: updatedChats };
+                });
+            }
+        };
+
+        socket.on("messagesSeen", handleUpdateSeen);
+        return () => socket.off("messagesSeen", handleUpdateSeen);
+    }, [socket, profiledata?._id, setAllChat]);
 
     return (
         <div className='bg-[#111b21] w-[30vw] h-screen relative flex flex-col border-r border-gray-700'>
@@ -25,7 +54,10 @@ const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
                             </div>
                             <h1 className='font-bold text-2xl text-white tracking-tight'>Messages</h1>
                         </div>
-                        <button onClick={() => setToggleSidebar(false)} className='p-2.5 text-gray-400 hover:bg-gray-700 rounded-full transition-all'>
+                        <button
+                            onClick={() => setToggleSidebar(false)}
+                            className='p-2.5 text-gray-400 hover:bg-gray-700 rounded-full transition-all'
+                        >
                             <LuSearch size={24} />
                         </button>
                     </div>
@@ -42,7 +74,10 @@ const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
                             />
                             <LuSearch className='absolute left-3 top-3 text-gray-500' size={18} />
                         </div>
-                        <button onClick={() => { setToggleSidebar(true); setSearchQuery(""); }} className='p-2 text-gray-400 hover:text-red-400'>
+                        <button
+                            onClick={() => { setToggleSidebar(true); setSearchQuery(""); }}
+                            className='p-2 text-gray-400 hover:text-red-400'
+                        >
                             <LuX size={24} />
                         </button>
                     </div>
@@ -57,20 +92,31 @@ const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
                             const isOnline = onlineUsers.includes(person?._id);
                             if (!person?.name) return null;
                             return (
-                                <div key={item.chat?._id} onClick={() => getUserChats(item.chat?._id)} className='flex items-center gap-4 px-4 py-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800/40 transition-all'>
+                                <div
+                                    key={item.chat?._id}
+                                    onClick={() => getUserChats(item.chat?._id)}
+                                    className='flex items-center gap-4 px-4 py-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800/40 transition-all'
+                                >
                                     <div className='relative text-gray-500'>
                                         <IoPersonCircle size={55} />
-                                        {isOnline && <span className='absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#111b21]'></span>}
+                                        {isOnline && (
+                                            <span className='absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#111b21]'></span>
+                                        )}
                                     </div>
                                     <div className='flex-1 min-w-0'>
                                         <div className='flex justify-between items-center'>
                                             <h2 className='text-white font-semibold truncate'>{person.name}</h2>
                                             <span className='text-[10px] text-gray-500'>
-                                                {item.chat?.updatedAt ? new Date(item.chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                                                {item.chat?.updatedAt
+                                                    ? new Date(item.chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                    : ""}
                                             </span>
                                         </div>
                                         <div className='flex justify-between items-center gap-2'>
-                                            <p className='text-sm text-gray-400 truncate flex-1'>{item.chat?.latestMessage?.text || "Click to say hi!"}</p>
+                                            <p className='text-sm text-gray-400 truncate flex-1'>
+                                                {item.chat?.latestMessage?.text || "Click to say hi!"}
+                                            </p>
+                                            {/* ✅ Unseen badge — clears instantly when messagesSeen fires */}
                                             {item.chat?.unSeencount > 0 && (
                                                 <div className='bg-green-500 text-[#111b21] text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1'>
                                                     {item.chat.unSeencount}
@@ -88,17 +134,23 @@ const Sidebar = ({ AllChat, getAlluser, createChat, getUserChats }) => {
                         {filteredGlobalUsers?.map((user) => {
                             const isOnline = onlineUsers.includes(user?._id);
                             return (
-                                <div key={user._id} onClick={() => { createChat(user._id); setToggleSidebar(true); }} className='flex items-center gap-4 px-4 py-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800/40 transition-all'>
+                                <div
+                                    key={user._id}
+                                    onClick={() => { createChat(user._id); setToggleSidebar(true); }}
+                                    className='flex items-center gap-4 px-4 py-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800/40 transition-all'
+                                >
                                     <div className='relative text-blue-500'>
                                         <IoPersonCircle size={50} />
-                                        {isOnline && <span className='absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#111b21]'></span>}
+                                        {isOnline && (
+                                            <span className='absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#111b21]'></span>
+                                        )}
                                     </div>
                                     <div className='flex-1'>
                                         <h2 className='text-white font-medium'>{user.name}</h2>
                                         <p className='text-xs text-gray-500'>{user.email}</p>
                                     </div>
                                 </div>
-                            )
+                            );
                         })}
                     </div>
                 )}
