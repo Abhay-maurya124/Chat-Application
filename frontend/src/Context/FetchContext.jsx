@@ -9,7 +9,6 @@ export const FetchDataProvider = ({ children }) => {
   const [Getmessages, setGetmessages] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
 
-  // ✅ Ref always holds the currently open chatId — readable inside async callbacks
   const activeChatIdRef = useRef(null);
 
   const getConfig = useCallback(() => ({
@@ -27,8 +26,6 @@ export const FetchDataProvider = ({ children }) => {
     }
   }, [getConfig]);
 
-  // ✅ FIX: After server responds, force unSeencount=0 for whichever chat is open
-  //    This prevents the badge flashing back after every getUserAllChats() poll
   const getUserAllChats = useCallback(async () => {
     try {
       const res = await axios.get("http://localhost:5002/v2/chat/all", getConfig());
@@ -60,8 +57,6 @@ export const FetchDataProvider = ({ children }) => {
   const getUserChats = useCallback(async (chatId) => {
     try {
       const res = await axios.get(`http://localhost:5002/v2/message/${chatId}`, getConfig());
-
-      // ✅ Track open chat BEFORE setting state
       activeChatIdRef.current = chatId;
 
       setGetmessages({
@@ -70,8 +65,7 @@ export const FetchDataProvider = ({ children }) => {
         user: res.data.user,
       });
 
-      // ✅ FIX: Instantly zero the badge in sidebar when user opens chat
-      //    Don't wait for socket event — do it right now in local state
+     
       setAllChat(prev => {
         if (!prev?.chats) return prev;
         return {
@@ -122,7 +116,7 @@ export const FetchDataProvider = ({ children }) => {
         fetchGlobalUsers();
       }
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   return (
     <FetchContext.Provider value={{

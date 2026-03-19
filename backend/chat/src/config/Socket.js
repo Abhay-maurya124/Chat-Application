@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
-import { Messages } from "../model/Messages.js"; // ✅ FIX: Import at top
+import { Messages } from "../model/messages.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -25,12 +25,10 @@ io.on("connection", (socket) => {
 
   io.emit("getOnlineUser", Object.keys(userSocketMap));
 
-  // ✅ NEW: Handle markAsSeen from frontend
   socket.on("markAsSeen", async (data) => {
     const { chatId, userId } = data;
     
     try {
-      // ✅ Get unseen message IDs before marking them
       const unseenMessages = await Messages.find({
         chatId,
         senderId: { $ne: userId },
@@ -39,13 +37,11 @@ io.on("connection", (socket) => {
 
       const unseenMessageIds = unseenMessages.map(msg => msg._id);
 
-      // Mark them as seen
       await Messages.updateMany(
         { chatId, senderId: { $ne: userId }, seen: false },
         { seen: true, seenAt: new Date() }
       );
 
-      // ✅ EMIT back to sender with specific message IDs
       socket.broadcast.emit("messagesSeen", {
         chatId,
         messageIds: unseenMessageIds

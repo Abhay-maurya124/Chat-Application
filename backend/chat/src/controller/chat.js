@@ -1,6 +1,6 @@
 import tryCatch from "../config/tryCatch.js";
 import { Chat } from "../model/chat.js";
-import { Messages } from "../model/Messages.js";
+import { Messages } from "../model/messages.js";
 import axios from "axios";
 import { io, getReceiverSocketId } from "../config/Socket.js";
 
@@ -105,16 +105,13 @@ export const getAllMessagesByChats = tryCatch(async (req, res) => {
     const chat = await Chat.findById(chatId);
     if (!chat) return res.status(400).json({ message: "Chat not found" });
 
-    // ✅ FIX: Get the message IDs that will be marked as seen
     const unseenMessages = await Messages.find({
         chatId,
         senderId: { $ne: userId },
         seen: false
-    }, { _id: 1 }); // Only get IDs for efficiency
-
+    }, { _id: 1 }); 
     const unseenMessageIds = unseenMessages.map(msg => msg._id);
 
-    // Mark messages as seen
     await Messages.updateMany(
         { chatId, senderId: { $ne: userId }, seen: false },
         { seen: true, seenAt: new Date() }
@@ -123,11 +120,10 @@ export const getAllMessagesByChats = tryCatch(async (req, res) => {
     const otherUserId = chat.users.find((id) => id.toString() !== userId.toString());
     const senderSocketId = getReceiverSocketId(otherUserId);
     
-    // ✅ FIX: Emit specific message IDs that were marked as seen
     if (senderSocketId) {
         io.to(senderSocketId).emit("messagesSeen", { 
             chatId,
-            messageIds: unseenMessageIds // ✅ NEW: Send which messages are now seen
+            messageIds: unseenMessageIds 
         });
     }
 
