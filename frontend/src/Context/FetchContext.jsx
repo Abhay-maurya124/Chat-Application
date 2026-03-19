@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 
 const FetchContext = createContext();
@@ -9,7 +9,9 @@ export const FetchDataProvider = ({ children }) => {
   const [Getmessages, setGetmessages] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
 
-  // Stable config using a getter so it always reads the latest token
+  // ✅ Ref always holds the currently open chatId — readable inside async callbacks
+  const activeChatIdRef = useRef(null);
+
   const getConfig = useCallback(() => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
   }), []);
@@ -25,10 +27,22 @@ export const FetchDataProvider = ({ children }) => {
     }
   }, [getConfig]);
 
+  // ✅ FIX: After server responds, force unSeencount=0 for whichever chat is open
+  //    This prevents the badge flashing back after every getUserAllChats() poll
   const getUserAllChats = useCallback(async () => {
     try {
       const res = await axios.get("http://localhost:5002/v2/chat/all", getConfig());
-      setAllChat(res.data);
+      const data = res.data;
+
+      if (activeChatIdRef.current && data?.chats) {
+        data.chats = data.chats.map(item =>
+          item.chat._id === activeChatIdRef.current
+            ? { ...item, chat: { ...item.chat, unSeencount: 0 } }
+            : item
+        );
+      }
+
+      setAllChat(data);
     } catch (e) {
       console.error("AllChats Error:", e.message);
     }
@@ -46,10 +60,28 @@ export const FetchDataProvider = ({ children }) => {
   const getUserChats = useCallback(async (chatId) => {
     try {
       const res = await axios.get(`http://localhost:5002/v2/message/${chatId}`, getConfig());
+
+      // ✅ Track open chat BEFORE setting state
+      activeChatIdRef.current = chatId;
+
       setGetmessages({
         activeChatId: chatId,
         messages: res.data.messages,
         user: res.data.user,
+      });
+
+      // ✅ FIX: Instantly zero the badge in sidebar when user opens chat
+      //    Don't wait for socket event — do it right now in local state
+      setAllChat(prev => {
+        if (!prev?.chats) return prev;
+        return {
+          ...prev,
+          chats: prev.chats.map(item =>
+            item.chat._id === chatId
+              ? { ...item, chat: { ...item.chat, unSeencount: 0 } }
+              : item
+          )
+        };
       });
     } catch (e) {
       console.error("GetMessages Error:", e.message);
@@ -81,11 +113,9 @@ export const FetchDataProvider = ({ children }) => {
     }
   }, [getConfig, getUserAllChats]);
 
-  // ✅ FIX: Run on mount — loads profile, chats, users without needing a page reload
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
     fetchProfile().then(userData => {
       if (userData) {
         getUserAllChats();
@@ -97,10 +127,10 @@ export const FetchDataProvider = ({ children }) => {
   return (
     <FetchContext.Provider value={{
       profiledata,
-      setProfiledata,       // ✅ exposed so login page can set it directly after verify
+      setProfiledata,
       fetchProfile,
       AllChat,
-      setAllChat,           // ✅ FIX: was missing — Sidebar socket handler needs this
+      setAllChat,
       getUserAllChats,
       Getmessages,
       setGetmessages,
@@ -109,6 +139,7 @@ export const FetchDataProvider = ({ children }) => {
       allUsers,
       createChat,
       fetchGlobalUsers,
+      activeChatIdRef,
     }}>
       {children}
     </FetchContext.Provider>

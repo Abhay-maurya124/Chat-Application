@@ -6,7 +6,7 @@ configDotenv();
 export const StartSendTopConsumer = async () => {
     try {
         const connection = await amqp.connect({
-            protocol: "amqp", // Fixed: was "amql"
+            protocol: "amqp",
             hostname: process.env.RABBITMQ_HOST,
             port: 5672,
             username: process.env.RABBITMQ_USERNAME,
