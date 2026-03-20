@@ -4,6 +4,8 @@ import axios from "axios"
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 
+const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5000";
+
 const Login = () => {
     const { loading, setloading } = useChatState()
     const [email, setemail] = useState("")
@@ -13,9 +15,8 @@ const Login = () => {
         setloading(true)
         e.preventDefault()
         try {
-            const res = await axios.post("http://localhost:5000/v1/user/login", { email })
-            console.log(res)
-            if (res.data.success == true) {
+            const res = await axios.post(`${USER_SERVICE_URL}/v1/user/login`, { email })
+            if (res.data.success === true) {
                 toast("Otp Sent successful");
                 setTimeout(() => {
                     navigate(`/verify?email=${email}`)
@@ -82,4 +83,4 @@ const Login = () => {
     )
 }
 
-export default Login
+export default Login;
