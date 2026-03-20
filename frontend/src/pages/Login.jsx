@@ -3,7 +3,6 @@ import { useChatState } from '../Context/NewContext';
 import axios from "axios"
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
-import { useFetchData } from '../Context/FetchContext';
 
 const Login = () => {
     const { loading, setloading } = useChatState()

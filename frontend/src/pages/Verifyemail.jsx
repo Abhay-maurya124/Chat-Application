@@ -36,7 +36,7 @@ const Verifyemail = () => {
         e.preventDefault();
         const otpCode = otp.join("");
         if (otpCode.length < 6) return toast.warning("Please enter all 6 digits");
-
+console.log(otpCode)
         setLoading(true);
         try {
             const res = await axios.post("http://localhost:5000/v1/user/verify", {

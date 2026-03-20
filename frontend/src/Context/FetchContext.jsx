@@ -55,7 +55,9 @@ export const FetchDataProvider = ({ children }) => {
   }, [getConfig]);
 
   const getUserChats = useCallback(async (chatId) => {
+   
     try {
+       console.log(chatId)
       const res = await axios.get(`http://localhost:5002/v2/message/${chatId}`, getConfig());
       activeChatIdRef.current = chatId;
 
@@ -65,7 +67,7 @@ export const FetchDataProvider = ({ children }) => {
         user: res.data.user,
       });
 
-     
+
       setAllChat(prev => {
         if (!prev?.chats) return prev;
         return {
@@ -116,7 +118,7 @@ export const FetchDataProvider = ({ children }) => {
         fetchGlobalUsers();
       }
     });
-  }, []); 
+  }, []);
 
   return (
     <FetchContext.Provider value={{

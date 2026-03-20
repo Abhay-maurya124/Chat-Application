@@ -6,13 +6,13 @@ configDotenv();
 export const StartSendTopConsumer = async () => {
     try {
         const connection = await amqp.connect({
-            protocol: "amqp",
+            protocol: "amqps",
             hostname: process.env.RABBITMQ_HOST,
-            port: 5672,
+            port: 5671,
             username: process.env.RABBITMQ_USERNAME,
             password: process.env.RABBITMQ_PASSWORD,
+            vhost: process.env.RABBITMQ_USERNAME,
         });
-
         const channel = await connection.createChannel();
         const queuename = "send-otp";
         await channel.assertQueue(queuename, { durable: true });

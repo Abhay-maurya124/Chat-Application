@@ -10,7 +10,6 @@ export const SocketProvider = ({ children }) => {
     const [onlineUsers, setOnlineUsers] = useState([]);
 
     useEffect(() => {
-        // ✅ FIX: Disconnect old socket before creating new one (handles re-login)
         if (!profiledata?._id) {
             if (socket) {
                 socket.disconnect();
@@ -33,7 +32,7 @@ export const SocketProvider = ({ children }) => {
             newSocket.off("getOnlineUser");
             newSocket.disconnect();
         };
-    }, [profiledata?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [profiledata?._id]); 
 
     return (
         <SocketContext.Provider value={{ socket, onlineUsers }}>
