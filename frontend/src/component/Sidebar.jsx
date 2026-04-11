@@ -95,6 +95,7 @@ const Sidebar = ({ AllChat, allUsers, createChat, getUserChats, showSidebar, onC
                             const person = item.user;
                             const isOnline = onlineUsers.includes(person?._id);
                             if (!person?.name) return null;
+                            
                             return (
                                 <div
                                     key={item.chat?._id}

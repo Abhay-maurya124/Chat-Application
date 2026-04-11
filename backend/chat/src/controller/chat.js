@@ -127,8 +127,17 @@ export const getAllMessagesByChats = tryCatch(async (req, res) => {
         });
     }
 
-    const messages = await Messages.find({ chatId }).sort({ createdAt: 1 });
-    const { data } = await axios.get(`${process.env.USER_SERVICE}/v1/user/alluser/${otherUserId}`);
+  let userData = { _id: otherUserId, name: "User Unavailable" };
 
-    res.json({ messages, user: data });
+    try {
+        const response = await axios.get(
+            `${process.env.USER_SERVICE}/v1/user/alluser/${otherUserId}`, 
+            { timeout: 5000 }
+        );
+        userData = response.data.user || response.data;
+    } catch (error) {
+        console.error("User Service unreachable:", error.message);
+    }
+
+    res.json({ messages, user: userData });
 });

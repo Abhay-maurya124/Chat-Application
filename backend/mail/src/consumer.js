@@ -13,6 +13,13 @@ export const StartSendTopConsumer = async () => {
             password: process.env.RABBITMQ_PASSWORD,
             vhost: process.env.RABBITMQ_USERNAME,
         });
+        connection.on("error", (err) => {
+            console.error("RabbitMQ Connection Error:", err.message);
+        });
+
+        connection.on("close", () => {
+            console.error("RabbitMQ Connection closed! You might need to restart the service.");
+        });
         const channel = await connection.createChannel();
         const queuename = "send-otp";
         await channel.assertQueue(queuename, { durable: true });
