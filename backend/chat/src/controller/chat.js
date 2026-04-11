@@ -112,7 +112,7 @@ export const getAllMessagesByChats = tryCatch(async (req, res) => {
     }, { _id: 1 }); 
     const unseenMessageIds = unseenMessages.map(msg => msg._id);
 
-    await Messages.updateMany(
+    const messages = await Messages.updateMany(
         { chatId, senderId: { $ne: userId }, seen: false },
         { seen: true, seenAt: new Date() }
     );
