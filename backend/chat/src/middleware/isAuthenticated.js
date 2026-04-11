@@ -2,9 +2,9 @@ import jwt from "jsonwebtoken";
 
 export const isAuth = (req, res, next) => {
   try {
-const authheader = req.headers.authorization;
+    const authheader = req.headers.authorization;
     if (!authheader || !authheader.startsWith("Bearer")) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         message: "Token is invelid or expired",
       });
