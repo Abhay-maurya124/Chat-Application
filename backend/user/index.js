@@ -10,9 +10,10 @@ const app = express();
 const PORT = process.env.PORT;
 app.use(
   cors({
-    origin: "http://localhost:5173" || "https://chat-application-dusky-theta.vercel.app/",
+    origin: ["http://localhost:5173", "https://chat-application-dusky-theta.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   }),
 );
 export const redisClient = createClient({
