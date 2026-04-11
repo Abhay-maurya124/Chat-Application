@@ -1,9 +1,9 @@
 import { configDotenv } from "dotenv";
 import express from "express";
-import mongoose from "mongoose"; 
+import mongoose from "mongoose";
 import router from "./src/routes/chat.js";
 import cors from "cors";
-import { app,server } from "./src/config/Socket.js";
+import { app, server } from "./src/config/Socket.js";
 
 configDotenv();
 app.use(express.json());
@@ -20,11 +20,11 @@ const connectDB = async () => {
     console.log("✅ Chat Connected to Database");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1); 
+    process.exit(1);
   }
 };
 
-connectDB(); 
+connectDB();
 
 app.use("/v2", router);
 

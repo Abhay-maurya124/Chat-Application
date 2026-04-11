@@ -3,9 +3,6 @@ import axios from "axios";
 
 const FetchContext = createContext();
 
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5000";
-const CHAT_SERVICE_URL = import.meta.env.VITE_CHAT_SERVICE_URL || "http://localhost:5002";
-
 export const FetchDataProvider = ({ children }) => {
   const [profiledata, setProfiledata] = useState(null);
   const [AllChat, setAllChat] = useState({ chats: [] });
@@ -20,7 +17,7 @@ export const FetchDataProvider = ({ children }) => {
 
   const fetchProfile = useCallback(async () => {
     try {
-      const res = await axios.get(`${USER_SERVICE_URL}/v1/user/profile`, getConfig());
+      const res = await axios.get("https://chatapp-user-backend.onrender.com/v1/user/profile", getConfig());
       setProfiledata(res.data);
       return res.data;
     } catch (e) {
@@ -31,7 +28,7 @@ export const FetchDataProvider = ({ children }) => {
 
   const getUserAllChats = useCallback(async () => {
     try {
-      const res = await axios.get(`${CHAT_SERVICE_URL}/v2/chat/all`, getConfig());
+      const res = await axios.get("https://chatapp-chat-backend.onrender.com/v2/chat/all", getConfig());
       const data = res.data;
 
       if (activeChatIdRef.current && data?.chats) {
@@ -50,7 +47,7 @@ export const FetchDataProvider = ({ children }) => {
 
   const fetchGlobalUsers = useCallback(async () => {
     try {
-      const res = await axios.get(`${USER_SERVICE_URL}/v1/user/alluser`, getConfig());
+      const res = await axios.get("https://chatapp-user-backend.onrender.com/v1/user/alluser", getConfig());
       setAllUsers(res.data);
     } catch (e) {
       console.error("Global Users Error:", e.message);
@@ -59,7 +56,7 @@ export const FetchDataProvider = ({ children }) => {
 
   const getUserChats = useCallback(async (chatId) => {
     try {
-      const res = await axios.get(`${CHAT_SERVICE_URL}/v2/message/${chatId}`, getConfig());
+      const res = await axios.get(`https://chatapp-chat-backend.onrender.com/v2/message/${chatId}`, getConfig());
       activeChatIdRef.current = chatId;
 
       setGetmessages({
@@ -68,6 +65,7 @@ export const FetchDataProvider = ({ children }) => {
         user: res.data.user,
       });
 
+     
       setAllChat(prev => {
         if (!prev?.chats) return prev;
         return {
@@ -86,7 +84,7 @@ export const FetchDataProvider = ({ children }) => {
 
   const createChat = useCallback(async (otherUserId) => {
     try {
-      const res = await axios.post(`${CHAT_SERVICE_URL}/v2/newChat`, { otherUserId }, getConfig());
+      const res = await axios.post("https://chatapp-chat-backend.onrender.com/v2/newChat", { otherUserId }, getConfig());
       await getUserAllChats();
       if (res.data.chatId) getUserChats(res.data.chatId);
     } catch (e) {
@@ -96,7 +94,7 @@ export const FetchDataProvider = ({ children }) => {
 
   const NewMessage = useCallback(async (chatId, text) => {
     try {
-      const res = await axios.post(`${CHAT_SERVICE_URL}/v2/message`, { chatId, text }, getConfig());
+      const res = await axios.post("https://chatapp-chat-backend.onrender.com/v2/message", { chatId, text }, getConfig());
       if (res.data.message) {
         setGetmessages(prev => ({
           ...prev,
@@ -118,7 +116,7 @@ export const FetchDataProvider = ({ children }) => {
         fetchGlobalUsers();
       }
     });
-  }, [fetchProfile, getUserAllChats, fetchGlobalUsers]);
+  }, []); 
 
   return (
     <FetchContext.Provider value={{

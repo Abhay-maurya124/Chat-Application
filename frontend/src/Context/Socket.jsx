@@ -18,7 +18,7 @@ export const SocketProvider = ({ children }) => {
             return;
         }
 
-        const newSocket = io("http://localhost:5002", {
+        const newSocket = io("https://chatapp-chat-backend.onrender.com", {
             query: { userId: profiledata._id }
         });
 

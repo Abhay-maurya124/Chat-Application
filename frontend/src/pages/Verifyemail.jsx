@@ -4,8 +4,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import { useFetchData } from '../Context/FetchContext';
 
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5000";
-
 const Verifyemail = () => {
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
     const inputRefs = useRef([]);
@@ -38,15 +36,16 @@ const Verifyemail = () => {
         e.preventDefault();
         const otpCode = otp.join("");
         if (otpCode.length < 6) return toast.warning("Please enter all 6 digits");
-        
+
         setLoading(true);
         try {
-            const res = await axios.post(`${USER_SERVICE_URL}/v1/user/verify`, {
+            const res = await axios.post("https://chatapp-user-backend.onrender.com/v1/user/verify", {
                 email,
                 otp: otpCode
             });
 
             localStorage.setItem("token", res.data.Token);
+
             toast.success("Email verified successfully!");
 
             const userData = await fetchProfile();
