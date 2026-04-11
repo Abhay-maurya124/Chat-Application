@@ -17,7 +17,7 @@ export const createNewChat = tryCatch(async (req, res) => {
     });
 
     if (existingChat) {
-        return res.status(200).json({ message: "Chat already exist", chatId: existingChat._id });
+        return res.status(200).json({ message: "Chat already exists", chatId: existingChat._id });
     }
 
     const newChat = await Chat.create({ users: [userId, otherUserId] });
@@ -46,9 +46,10 @@ export const getAllChats = tryCatch(async (req, res) => {
             });
 
             try {
-                const { data } = await axios.get(`${process.env.USER_SERVICE}/v1/user/alluser/${otherUserId}`);
+                const response = await axios.get(`${process.env.USER_SERVICE}/v1/user/alluser/${otherUserId}`, { timeout: 5000 });
+                const userData = response.data.user || response.data;
                 return {
-                    user: data,
+                    user: userData,
                     chat: { ...chat.toObject(), unSeencount },
                 };
             } catch (error) {
@@ -99,8 +100,8 @@ export const sendMessage = tryCatch(async (req, res) => {
 });
 
 export const getAllMessagesByChats = tryCatch(async (req, res) => {
-    const userId = req.user?._id;
     const { chatId } = req.params;
+    const userId = req.user?._id;
 
     const chat = await Chat.findById(chatId);
     if (!chat) return res.status(400).json({ message: "Chat not found" });
@@ -109,35 +110,27 @@ export const getAllMessagesByChats = tryCatch(async (req, res) => {
         chatId,
         senderId: { $ne: userId },
         seen: false
-    }, { _id: 1 }); 
+    }, { _id: 1 });
     const unseenMessageIds = unseenMessages.map(msg => msg._id);
 
-    const messages = await Messages.updateMany(
+    await Messages.updateMany(
         { chatId, senderId: { $ne: userId }, seen: false },
         { seen: true, seenAt: new Date() }
     );
 
     const otherUserId = chat.users.find((id) => id.toString() !== userId.toString());
     const senderSocketId = getReceiverSocketId(otherUserId);
-    
     if (senderSocketId) {
-        io.to(senderSocketId).emit("messagesSeen", { 
-            chatId,
-            messageIds: unseenMessageIds 
-        });
+        io.to(senderSocketId).emit("messagesSeen", { chatId, messageIds: unseenMessageIds });
     }
 
-  let userData = { _id: otherUserId, name: "User Unavailable" };
+    const actualMessagesArray = await Messages.find({ chatId }).sort({ createdAt: 1 });
 
     try {
-        const response = await axios.get(
-            `${process.env.USER_SERVICE}/v1/user/alluser/${otherUserId}`, 
-            { timeout: 5000 }
-        );
-        userData = response.data.user || response.data;
+        const response = await axios.get(`${process.env.USER_SERVICE}/v1/user/alluser/${otherUserId}`, { timeout: 5000 });
+        const userData = response.data.user || response.data;
+        res.json({ messages: actualMessagesArray, user: userData });
     } catch (error) {
-        console.error("User Service unreachable:", error.message);
+        res.json({ messages: actualMessagesArray, user: { _id: otherUserId, name: "Unknown" } });
     }
-
-    res.json({ messages, user: userData });
 });
