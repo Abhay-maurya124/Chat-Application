@@ -18,15 +18,12 @@ export const SocketProvider = ({ children }) => {
             return;
         }
 
-        const newSocket = io("https://chatapp-chat-backend.onrender.com", {
+        const newSocket = io(import.meta.env.VITE_CHAT_SERVICE_URL, {
             query: { userId: profiledata._id }
         });
 
         setSocket(newSocket);
-
-        newSocket.on("getOnlineUser", (users) => {
-            setOnlineUsers(users);
-        });
+        newSocket.on("getOnlineUser", (users) => setOnlineUsers(users));
 
         return () => {
             newSocket.off("getOnlineUser");

@@ -8,12 +8,13 @@ const Login = () => {
     const { loading, setloading } = useChatState()
     const [email, setemail] = useState("")
     const navigate = useNavigate()
+  const userURL = import.meta.env.VITE_USER_SERVICE_URL;
 
     const handleSubmit = async (e) => {
         setloading(true)
         e.preventDefault()
         try {
-            const res = await axios.post("https://chatapp-user-backend.onrender.com/v1/user/login", { email })
+            const res = await axios.post(`${userURL}/v1/user/login`, { email })
             console.log(res)
             if (res.data.success == true) {
                 toast("Otp Sent successful");

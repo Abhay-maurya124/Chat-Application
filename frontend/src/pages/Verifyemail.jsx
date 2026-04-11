@@ -10,6 +10,7 @@ const Verifyemail = () => {
     const [loading, setLoading] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const userURL = import.meta.env.VITE_USER_SERVICE_URL;
 
     const { fetchProfile, fetchGlobalUsers, getUserAllChats } = useFetchData();
 
@@ -39,7 +40,7 @@ const Verifyemail = () => {
 
         setLoading(true);
         try {
-            const res = await axios.post("https://chatapp-user-backend.onrender.com/v1/user/verify", {
+            const res = await axios.post(`${userURL}/v1/user/verify`, {
                 email,
                 otp: otpCode
             });
@@ -66,7 +67,7 @@ const Verifyemail = () => {
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-900 to-black px-4 py-8">
             <ToastContainer />
-            
+
             <div className="w-full max-w-md flex flex-col">
                 <div className="mb-6 md:mb-8 text-center">
                     <h2 className="text-indigo-400 font-medium tracking-widest uppercase text-xs md:text-sm mb-2 md:mb-3">Verification</h2>

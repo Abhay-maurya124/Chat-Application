@@ -11,24 +11,28 @@ export const FetchDataProvider = ({ children }) => {
 
   const activeChatIdRef = useRef(null);
 
+  // Helper to get base URLs from env
+  const userURL = import.meta.env.VITE_USER_SERVICE_URL;
+  const chatURL = import.meta.env.VITE_CHAT_SERVICE_URL;
+
   const getConfig = useCallback(() => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
   }), []);
 
   const fetchProfile = useCallback(async () => {
     try {
-      const res = await axios.get("https://chatapp-user-backend.onrender.com/v1/user/profile", getConfig());
+      const res = await axios.get(`${userURL}/v1/user/profile`, getConfig());
       setProfiledata(res.data);
       return res.data;
     } catch (e) {
       console.error("Profile Error:", e.message);
       return null;
     }
-  }, [getConfig]);
+  }, [getConfig, userURL]);
 
   const getUserAllChats = useCallback(async () => {
     try {
-      const res = await axios.get("https://chatapp-chat-backend.onrender.com/v2/chat/all", getConfig());
+      const res = await axios.get(`${chatURL}/v2/chat/all`, getConfig());
       const data = res.data;
 
       if (activeChatIdRef.current && data?.chats) {
@@ -38,63 +42,57 @@ export const FetchDataProvider = ({ children }) => {
             : item
         );
       }
-
       setAllChat(data);
     } catch (e) {
       console.error("AllChats Error:", e.message);
     }
-  }, [getConfig]);
+  }, [getConfig, chatURL]);
 
   const fetchGlobalUsers = useCallback(async () => {
     try {
-      const res = await axios.get("https://chatapp-user-backend.onrender.com/v1/user/alluser", getConfig());
+      const res = await axios.get(`${userURL}/v1/user/alluser`, getConfig());
       setAllUsers(res.data);
     } catch (e) {
       console.error("Global Users Error:", e.message);
     }
-  }, [getConfig]);
+  }, [getConfig, userURL]);
 
   const getUserChats = useCallback(async (chatId) => {
     try {
-      const res = await axios.get(`https://chatapp-chat-backend.onrender.com/v2/message/${chatId}`, getConfig());
+      const res = await axios.get(`${chatURL}/v2/message/${chatId}`, getConfig());
       activeChatIdRef.current = chatId;
-
       setGetmessages({
         activeChatId: chatId,
         messages: res.data.messages,
         user: res.data.user,
       });
-
-     
       setAllChat(prev => {
         if (!prev?.chats) return prev;
         return {
           ...prev,
           chats: prev.chats.map(item =>
-            item.chat._id === chatId
-              ? { ...item, chat: { ...item.chat, unSeencount: 0 } }
-              : item
+            item.chat._id === chatId ? { ...item, chat: { ...item.chat, unSeencount: 0 } } : item
           )
         };
       });
     } catch (e) {
       console.error("GetMessages Error:", e.message);
     }
-  }, [getConfig]);
+  }, [getConfig, chatURL]);
 
   const createChat = useCallback(async (otherUserId) => {
     try {
-      const res = await axios.post("https://chatapp-chat-backend.onrender.com/v2/newChat", { otherUserId }, getConfig());
+      const res = await axios.post(`${chatURL}/v2/newChat`, { otherUserId }, getConfig());
       await getUserAllChats();
       if (res.data.chatId) getUserChats(res.data.chatId);
     } catch (e) {
       console.error("Create Chat Error:", e.message);
     }
-  }, [getConfig, getUserAllChats, getUserChats]);
+  }, [getConfig, chatURL, getUserAllChats, getUserChats]);
 
   const NewMessage = useCallback(async (chatId, text) => {
     try {
-      const res = await axios.post("https://chatapp-chat-backend.onrender.com/v2/message", { chatId, text }, getConfig());
+      const res = await axios.post(`${chatURL}/v2/message`, { chatId, text }, getConfig());
       if (res.data.message) {
         setGetmessages(prev => ({
           ...prev,
@@ -105,7 +103,7 @@ export const FetchDataProvider = ({ children }) => {
     } catch (e) {
       console.error("Send Error:", e.message);
     }
-  }, [getConfig, getUserAllChats]);
+  }, [getConfig, chatURL, getUserAllChats]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -116,24 +114,13 @@ export const FetchDataProvider = ({ children }) => {
         fetchGlobalUsers();
       }
     });
-  }, []); 
+  }, [fetchProfile, getUserAllChats, fetchGlobalUsers]);
 
   return (
     <FetchContext.Provider value={{
-      profiledata,
-      setProfiledata,
-      fetchProfile,
-      AllChat,
-      setAllChat,
-      getUserAllChats,
-      Getmessages,
-      setGetmessages,
-      getUserChats,
-      NewMessage,
-      allUsers,
-      createChat,
-      fetchGlobalUsers,
-      activeChatIdRef,
+      profiledata, setProfiledata, fetchProfile, AllChat, setAllChat,
+      getUserAllChats, Getmessages, setGetmessages, getUserChats,
+      NewMessage, allUsers, createChat, fetchGlobalUsers, activeChatIdRef
     }}>
       {children}
     </FetchContext.Provider>
